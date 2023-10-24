@@ -26,10 +26,13 @@ int main() {
             a[i]=x;
             b[i]=x;
         }
-        std::cout<<"\n"; a+=b;
-        a.Print(); std::cout<<"\n"; b.Print(); std::cout<<"\n";
+        std::cout<<"\n***TEST1: A+=B***\n"; a+=b;
+        a.Print(); std::cout<<"\n"; b.Print(); std::cout<<"\n***TEST2: operator*(3, a)\n";
         a=operator*(3, a);
-        a.Print();
+        a.Print(); std::cout<<"\nTEST3: B*=3\n";
+        b*=3; b.Print();
+        std::cout<<"\n***TEST4: 0DIV EXCEPT:***\n";
+        operator/(0, b);
         //testiranje kraj
     } catch (std::exception &e) {
         std::cout<<e.what();

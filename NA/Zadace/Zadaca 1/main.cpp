@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include "Matrix.h"
 #include "Vector.h"
 /*
 double VectorNorm(const Vector &v) {
@@ -6,15 +7,6 @@ double VectorNorm(const Vector &v) {
     for(auto a : v.v) sumakv+=a;
     return sqrt(sumakv);
 }*/
-
-class Matrica {
-    std::vector<std::vector<int>> matrica;
-public:
-    explicit Matrica(int m, int n) {
-        this->matrica = std::vector<std::vector<int>> (m, std::vector<int>(n));
-    }   
-
-};
 
 int main() {
     try {
@@ -32,7 +24,11 @@ int main() {
         a.Print(); std::cout<<"\nTEST3: B*=3\n";
         b*=3; b.Print();
         std::cout<<"\n***TEST4: 0DIV EXCEPT:***\n";
-        operator/(0, b);
+        //operator/(0, b);
+
+        Matrix matrica(2, 3);
+
+        getchar();
         //testiranje kraj
     } catch (std::exception &e) {
         std::cout<<e.what();

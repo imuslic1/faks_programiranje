@@ -1,15 +1,16 @@
+#ifndef VECTOR_HPP
+#define VECTOR_HPP
+
+
 #include <bits/stdc++.h>
 
 class Vector {
     std::vector<double> v;
 public:
-    void Ispisi(); //probna funkcija za ispis
-
     explicit Vector(int n) {
         if(n<=0) throw std::range_error("Bad dimension");
         v = std::vector<double>(n, 0);
     }  
-
     Vector(std::initializer_list<double> l);
     int NElems() const { return v.size(); }
     double &operator[](int i);
@@ -33,10 +34,6 @@ public:
     friend Vector operator/(double s, const Vector &v);
     Vector &operator/=(double s);
 };
-
-inline void Vector::Ispisi() {
-    for(auto a: v) std::cout<<a;                //probna funkcija za ispis
-}
 
 inline Vector::Vector(std::initializer_list<double> l) {
     if(l.size()==0) throw std::range_error("Bad dimension");
@@ -68,6 +65,7 @@ inline double Vector::Norm() const {
 }
 
 inline double VectorNorm(const Vector &v) {
+    std::sort(v.v.begin(), v.v.end());   // zbog vece preciznosti pri sabiranju manjih ka vecima
     long double sumakv = 0;              //mozda ne treba long
     for(auto a : v.v) sumakv+=a;
     return sqrt(sumakv);
@@ -173,3 +171,5 @@ inline Vector &Vector::operator/=(double s) {
     for(auto &a:this->v) a/=s;
     return *this;
 }
+
+#endif

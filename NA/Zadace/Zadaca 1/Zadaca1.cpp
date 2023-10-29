@@ -1,17 +1,190 @@
-#ifndef NA_MATRIX_H
-#define NA_MATRIX_H
+#include <bits/stdc++.h>
 
-// * * * * * * * * * * * * * * * * * * * *
-// *    
-// * Numerički Algoritmi - Zadaća 1
-// *    Matrix.h - klasna matrica 
-// *    organizirana kao
-// *    std::vector<std::vector<double>>
-// * 
-// * 
-// * * * * * * * * * * * * * * * * * * * *
+/**
+ * Numerički Algoritmi - Zadaća 1
+ *    Vector.h - omotač oko bibliotečkog
+ *    std::vector<double>
+*/
 
-#include "Vector.h"
+class Vector {
+    std::vector<double> v;
+public:
+    explicit Vector(int n) {
+        if(n<=0) throw std::range_error("Bad dimension");
+        v = std::vector<double>(n, 0);
+    }  
+    Vector(std::initializer_list<double> l);
+    int NElems() const { return v.size(); }
+    double &operator[](int i);
+    double operator[](int i) const;
+    double &operator()(int i);
+    double operator()(int i) const;
+    double Norm() const;
+    friend double VectorNorm(const Vector &v);
+    double GetEpsilon() const;
+    void Print(char separator, double eps) const;
+    friend void PrintVector(const Vector &v, char separator, 
+        double eps);
+    friend Vector operator+(const Vector &v1, const Vector &v2);
+    Vector &operator +=(const Vector &v);
+    friend Vector operator-(const Vector &v1, const Vector &v2);
+    Vector &operator-=(const Vector &v);
+    friend Vector operator*(double s, const Vector &v);
+    friend Vector operator*(const Vector &v, double s);
+    Vector &operator*=(double s);
+    friend double operator*(const Vector &v1, const Vector &v2);
+    friend Vector operator/(const Vector &v, double s);
+    Vector &operator/=(double s);
+};
+
+inline Vector::Vector(std::initializer_list<double> l) {
+    if(l.size()==0) throw std::range_error("Bad dimension");
+    v = l;
+}
+
+inline double &Vector::operator[](int i) {
+    return v[i];
+}
+
+inline double Vector::operator[](int i) const {
+    return v[i];
+}
+
+inline double &Vector::operator()(int i) {
+    if(i>v.size() || i<0) throw std::range_error("Invalid index");
+    return v[i-1];
+}
+
+inline double Vector::operator()(int i) const {
+    if(i>v.size() || i<0) throw std::range_error("Invalid index");
+    return v[i-1];
+}
+
+/**
+ * Vector::Norm()
+ * Zbog vece preciznosti pri sabiranju manjih elemenata ka vecim
+ * koristi se std::sort()
+*/
+
+inline double Vector::Norm() const {
+    long double sumakv = 0; auto v1 = this->v;
+    std::sort(v1.begin(), v1.end());      
+    for(auto a : v1) sumakv+=a*a;
+    return sqrt(sumakv);
+}
+
+inline double VectorNorm(const Vector &v) {
+    return v.Norm();
+}
+
+inline double Vector::GetEpsilon() const {
+    long double norma = this->Norm();    //potencijalno bez long
+    return 10. * norma * std::numeric_limits<double>::epsilon();
+}
+
+inline void Vector::Print(char separator = '\n', double eps = -1) const {
+    if(eps<0) eps = this->GetEpsilon();
+    for(int i=0; i<v.size(); i++) {
+        double trenutni = v.at(i);
+        if(fabs(trenutni)<eps) trenutni = 0;
+        if(i==v.size()-1 && separator != '\n') std::cout<<trenutni;
+        else std::cout<<trenutni<<separator;
+    }
+}
+
+inline void PrintVector(const Vector &v, char separator = '\n', 
+    double eps = -1) {
+    if(eps<=0) eps = v.GetEpsilon();
+    for(int i=0; i<v.v.size(); i++) {
+        double trenutni = v.v.at(i);
+        if(fabs(trenutni)<eps) trenutni = 0;
+        if(i==v.v.size()-1 && separator != '\n') std::cout<<trenutni;
+        else std::cout<<trenutni<<separator;
+    }
+}
+
+inline Vector operator+(const Vector &v1, const Vector &v2) {
+    if(v1.v.size()!=v2.v.size())
+        throw std::domain_error("Incompatible formats");
+    Vector rezultat(v1.v.size());
+    for(int i=0; i<v1.v.size(); i++)
+        //rezultat.v.push_back(v1.v.at(i)+v2.v.at(i));
+        rezultat.v.at(i)=v1.v.at(i)+v2.v.at(i);
+    return rezultat;    
+}
+
+inline Vector operator-(const Vector &v1, const Vector &v2) {
+    if(v1.v.size()!=v2.v.size())
+        throw std::domain_error("Incompatible formats");
+    Vector rezultat(v1.v.size());
+    for(int i=0; i<v1.v.size(); i++)
+        //rezultat.v.push_back(v1.v.at(i)-v2.v.at(i));
+        rezultat.v.at(i)=v1.v.at(i)-v2.v.at(i);
+    return rezultat;            
+}
+
+inline Vector operator*(double s, const Vector &v) {
+    Vector rezultat(v.v.size());
+    for(int i=0; i<v.v.size(); i++) 
+        rezultat.v.at(i)=v.v.at(i)*s;
+    return rezultat;        
+}
+
+inline Vector operator*(const Vector &v, double s) {
+    return s*v;
+}
+
+inline double operator*(const Vector &v1, const Vector &v2) {
+    if(v1.v.size()!=v2.v.size())
+        throw std::domain_error("Incompatible formats");
+    double result=0;
+    for(int i=0; i<v1.v.size(); i++)
+        result+=v1.v.at(i)*v2.v.at(i);
+    return result;
+}
+
+inline Vector operator/(const Vector &v, double s) {
+    if(s==0)
+        throw std::domain_error("Division by zero");
+    auto rezultat = v; 
+    for(auto &a:rezultat.v) a/=s;
+    return rezultat;
+}
+
+inline Vector &Vector::operator+=(const Vector &v) {
+    if(this->v.size()!=v.v.size())
+        throw std::domain_error("Incompatible formats");
+    for(int i=0; i<this->v.size(); i++) {
+        this->v.at(i)+=v.v.at(i);
+    }
+    return *this;
+}
+
+inline Vector &Vector::operator-=(const Vector &v) {
+    if(this->v.size()!=v.v.size())
+        throw std::domain_error("Incompatible formats");
+    for(int i=0; i<this->v.size(); i++) {
+        this->v.at(i)-=v.v.at(i);
+    }
+    return *this;
+}
+
+inline Vector &Vector::operator*=(double s) {
+    for(auto &a:this->v) a*=s;
+    return *this;
+}
+
+inline Vector &Vector::operator/=(double s) {
+    if(s==0) throw std::domain_error("Division by zero");
+    for(auto &a:this->v) a/=s;
+    return *this;
+}
+
+/**
+ * Numerički Algoritmi - Zadaća 1
+ *    Matrix.h - klasna matrica
+ *    organizirana kao std::vector<std::vector<double>>
+*/
 
 class Matrix {
     std::vector<std::vector<double>> matrica;
@@ -282,4 +455,55 @@ inline void Matrix::Transpose() {
     }
 }
 
-#endif
+/**
+ * Numerički Algoritmi - Zadaća 1
+ *  Main funkcija - aplikativni testovi
+*/
+
+int main() {
+    try {
+        Vector a(3);
+        Vector b(3);
+        for(int i=0; i<3; i++) {
+            double x; std::cin>>x;
+            a[i]=x;
+            b[i]=x;
+        }
+        
+        std::cout<<"\n***TEST1: A+=B***\n"; a+=b;
+        a.Print(); std::cout<<"\n"; b.Print(); std::cout<<"\n***TEST2: operator*(3, a)\n";
+        a=operator*(3, a);
+        a.Print(); std::cout<<"\nTEST3: B*=3\n";
+        b*=3; b.Print();
+
+        //std::cout<<"\n***TEST4: 0DIV EXCEPT:***\n";
+        //operator/(0, b);
+
+        Matrix matrica(2, 3);
+        //Matrix matrica2 = {{1, 2}, {1, 2, 3}}; //test sekvencijalnog konstruktora
+        //std::cout<<"***debug 001: vracanje reda matrice***\n";
+        int foo = matrica.NCols();
+        for(double* i = matrica[1]; i<matrica[1]+foo; i++)
+            std::cout<<*i;
+        std::cout<<"\n"<<matrica.Norm()<<"\n";
+        matrica.Print();
+        std::cout<<"\nMNOZENJE MATRICE VEKTOROM: \n";
+        Vector v = {1, 2, 3};
+        Matrix A = {{1, 2, 3}, {2, 1, 1}, {4, 3, 2}};
+        Matrix B = {{1, 2}, {3, 6}, {7, 9}, {5, 2}};
+        auto rezultat_mnozenja = A*v;
+        rezultat_mnozenja.Print();
+        getchar();
+        std::cout<<"\nTRANSPONUJ A: \n";
+        A.Transpose(); A.Print();
+        std::cout<<"\n";
+        Matrix C = Transpose(A); C.Print();
+        C*=3; C.Print();
+        std::cout<<"\nTRANSPONUJ B: \n";
+        //B.Transpose(); B.Print();
+        //Transpose(B); B.Print();
+    } catch (std::exception &e) {
+        std::cout<<e.what();
+    }
+    return 0;
+}

@@ -1,8 +1,13 @@
-#ifndef VECTOR_HPP
-#define VECTOR_HPP
+#ifndef NA_VECTOR_H
+#define NA_VECTOR_H
 
-
-#include <bits/stdc++.h>
+// * * * * * * * * * * * * * * * * * * * *
+// *    
+// * Numerički Algoritmi - Zadaća 1
+// *    Vector.h - omotač oko bibliotečkog 
+// *    std::vector<double>
+// * 
+// * * * * * * * * * * * * * * * * * * * *
 
 class Vector {
     std::vector<double> v;
@@ -31,7 +36,7 @@ public:
     friend Vector operator*(const Vector &v, double s);
     Vector &operator*=(double s);
     friend double operator*(const Vector &v1, const Vector &v2);
-    friend Vector operator/(double s, const Vector &v);
+    friend Vector operator/(const Vector &v, double s);
     Vector &operator/=(double s);
 };
 
@@ -58,26 +63,30 @@ inline double Vector::operator()(int i) const {
     return v[i-1];
 }
 
+/**
+ * Vector::Norm()
+ * Zbog vece preciznosti pri sabiranju manjih elemenata ka vecim
+ * koristi se std::sort()
+*/
+
 inline double Vector::Norm() const {
-    long double sumakv = 0;
-    for(auto a : v) sumakv+=a;
+    long double sumakv = 0; auto v1 = this->v;
+    std::sort(v1.begin(), v1.end());      
+    for(auto a : v1) sumakv+=a*a;
     return sqrt(sumakv);
 }
 
 inline double VectorNorm(const Vector &v) {
-    std::sort(v.v.begin(), v.v.end());   // zbog vece preciznosti pri sabiranju manjih ka vecima
-    long double sumakv = 0;              //mozda ne treba long
-    for(auto a : v.v) sumakv+=a;
-    return sqrt(sumakv);
+    return v.Norm();
 }
 
 inline double Vector::GetEpsilon() const {
     long double norma = this->Norm();    //potencijalno bez long
-    return 10 * norma * std::numeric_limits<double>::epsilon();
+    return 10. * norma * std::numeric_limits<double>::epsilon();
 }
 
 inline void Vector::Print(char separator = '\n', double eps = -1) const {
-    if(eps<=0) eps = this->GetEpsilon();
+    if(eps<0) eps = this->GetEpsilon();
     for(int i=0; i<v.size(); i++) {
         double trenutni = v.at(i);
         if(fabs(trenutni)<eps) trenutni = 0;
@@ -102,7 +111,8 @@ inline Vector operator+(const Vector &v1, const Vector &v2) {
         throw std::domain_error("Incompatible formats");
     Vector rezultat(v1.v.size());
     for(int i=0; i<v1.v.size(); i++)
-        rezultat.v.push_back(v1.v.at(i)+v2.v.at(i));
+        //rezultat.v.push_back(v1.v.at(i)+v2.v.at(i));
+        rezultat.v.at(i)=v1.v.at(i)+v2.v.at(i);
     return rezultat;    
 }
 
@@ -111,7 +121,8 @@ inline Vector operator-(const Vector &v1, const Vector &v2) {
         throw std::domain_error("Incompatible formats");
     Vector rezultat(v1.v.size());
     for(int i=0; i<v1.v.size(); i++)
-        rezultat.v.push_back(v1.v.at(i)-v2.v.at(i));
+        //rezultat.v.push_back(v1.v.at(i)-v2.v.at(i));
+        rezultat.v.at(i)=v1.v.at(i)-v2.v.at(i);
     return rezultat;            
 }
 
@@ -123,7 +134,7 @@ inline Vector operator*(double s, const Vector &v) {
 }
 
 inline Vector operator*(const Vector &v, double s) {
-    return operator*(s, v);
+    return s*v;
 }
 
 inline double operator*(const Vector &v1, const Vector &v2) {
@@ -135,7 +146,7 @@ inline double operator*(const Vector &v1, const Vector &v2) {
     return result;
 }
 
-inline Vector operator/(double s, const Vector &v) {
+inline Vector operator/(const Vector &v, double s) {
     if(s==0)
         throw std::domain_error("Division by zero");
     auto rezultat = v; 

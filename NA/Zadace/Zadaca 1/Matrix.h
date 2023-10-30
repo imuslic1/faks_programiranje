@@ -132,6 +132,7 @@ inline void Matrix::Print(int width, double eps) const {
             }
         std::cout<<std::endl;
     }
+    std::cout<<std::endl;
 }
 
 inline void PrintMatrix(const Matrix &m, int width=10, double eps=-1) {
@@ -143,6 +144,7 @@ inline void PrintMatrix(const Matrix &m, int width=10, double eps=-1) {
             }
         std::cout<<std::endl;
     }
+    std::cout<<std::endl;
 }
 
 inline Matrix operator+(const Matrix &m1, const Matrix &m2) {

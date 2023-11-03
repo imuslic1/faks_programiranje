@@ -2,11 +2,11 @@
 #include "Matrix.h"
 #include "Vector.h"
 
-
 /**
  * Numericki Algoritmi - Zadaca 1
  *    Main funkcija - aplikativni testovi
 */
+
 
 int main() {
 

@@ -97,7 +97,7 @@ inline void Vector::Print(char separator = '\n', double eps = -1) const {
 
 inline void PrintVector(const Vector &v, char separator = '\n', 
     double eps = -1) {
-    if(eps<=0) eps = v.GetEpsilon();
+    if(eps<0) eps = v.GetEpsilon();
     for(int i=0; i<v.v.size(); i++) {
         double trenutni = v.v.at(i);
         if(fabs(trenutni)<eps) trenutni = 0;

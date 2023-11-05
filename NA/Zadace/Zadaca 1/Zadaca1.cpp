@@ -225,10 +225,12 @@ inline Matrix::Matrix(int m, int n) {
 }
 
 inline Matrix::Matrix(const Vector &v) {
-    for(int i=0; i<matrica.at(0).size(); i++) {
-        matrica.at(0).at(i) = v[i];
+    matrica = std::vector<std::vector<double>>(v.NElems(), std::vector<double>(1, 0));    
+    for(int i=0; i<v.NElems(); i++) {
+        matrica[i][0] = v[i];
     }
 }
+
 inline Matrix::Matrix(std::initializer_list<std::vector<double>> l) {
     if(l.size()==0 || l.begin()->size()==0) throw std::range_error("Bad dimension");
     size_t common_size = l.begin()->size(); 
@@ -319,7 +321,7 @@ inline void PrintMatrix(const Matrix &m, int width=10, double eps=-1) {
 }
 
 inline Matrix operator+(const Matrix &m1, const Matrix &m2) {
-    if(m1.NRows() != m2.NRows() || m2.NCols() != m2.NCols())
+    if((m1.NRows() != m2.NRows()) || (m1.NCols() != m2.NCols()))
         throw std::domain_error("Incompatible formats");
     Matrix rezultat(m1.NRows(), m1.NCols());
     for(int i=0; i<m1.NRows(); i++)
@@ -329,7 +331,7 @@ inline Matrix operator+(const Matrix &m1, const Matrix &m2) {
 }
 
 inline Matrix operator-(const Matrix &m1, const Matrix &m2) {
-    if(m1.NRows() != m2.NRows() || m2.NCols() != m2.NCols())
+    if((m1.NRows() != m2.NRows()) || (m1.NCols() != m2.NCols()))
         throw std::domain_error("Incompatible formats");
     Matrix rezultat(m1.NRows(), m1.NCols());
     for(int i=0; i<m1.NRows(); i++)
@@ -443,27 +445,24 @@ inline void Matrix::Transpose() {
     }
     else {
         for(int i=0; i<NRows(); i++){
-        for(int j=i; j<NCols(); j++) {
-            if(i!=j) {
-                double temp;
-                temp = matrica[i][j];
-                matrica[i][j] = matrica[j][i];
-                matrica[j][i] = temp;
+            for(int j=i; j<NCols(); j++) {
+                if(i!=j) {
+                    double temp;
+                    temp = matrica[i][j];
+                    matrica[i][j] = matrica[j][i];
+                    matrica[j][i] = temp;
+                }
             }
         }
     }
-    }
 }
 
-/**
- * Numerički Algoritmi - Zadaća 1
- *  Main funkcija - aplikativni testovi
-*/
 
 int main() {
 
     /**
-     * Aplikativni testovi: class Vector
+     * Numerički Algoritmi - Zadaća 1
+     * Main funkcija - aplikativni testovi
      * 
      * 
      * Testovi konstruktora, 
@@ -471,6 +470,7 @@ int main() {
      * te funkcije NElems()
      * 
     */
+
     std::cout<<"***TEST1: Vector***\n\n";
     std::cout<<"CETIRI IZUZETKA: \n";
     try {
@@ -487,10 +487,12 @@ int main() {
 
     Vector a(3);
     Vector b = {2.1, 3.22, 4.57, 0.00014, 2.14159265359, 1.71};
+    
     for(int i=0; i<a.NElems(); i++) {
         double x = 0.23; 
         a[i] = x + 0.4 * i;
     }
+
     for(int i=1; i<=b.NElems(); i++)
         b(i) += 1;
 
@@ -554,7 +556,7 @@ int main() {
     std::cout<<"\nVector b1:\n"; b1.Print();
     std::cout<<"\na-a1:\n"; PrintVector(a-a1); 
     std::cout<<"\nb+b1:\n"; PrintVector(b+b1);
-    std::cout<<"\nc = a*a1: \n"; std::cout<<a*a1;
+    std::cout<<"\nc = a*a1: \n"; std::cout<<a*a1<<"\n";
     std::cout<<"\na/0.2:\n"; PrintVector(a/0.4);
 
     // Testovi operatora +=, -=, *= i /=, funkcija Print() i PrintVector(),
@@ -570,11 +572,13 @@ int main() {
     } catch(std::exception &e) {
         std::cout<<e.what()<<"\n";
     }
+
     try {
         a/=0;
     } catch(std::exception &e) {
         std::cout<<e.what()<<"\n";
     }  
+
     std::cout<<"\na-=a1:\n";
     a-=a1; a.Print();
     std::cout<<"\na+=a1:\n";
@@ -584,43 +588,163 @@ int main() {
     std::cout<<"\nb/=0.9:\n";
     b/=0.9; b.Print();   
     
-    // Konstruktori, vraćanje reda matrice, funkcija NCols()
-    std::cout<<"***TEST2: Matrix***\n\n";
+    std::cout<<"\n***TEST2: Matrix***\n";
+
+    // Konstruktori, operator()    
+    std::cout<<"\nPET IZUTETAKA:";
+    try {
+        Matrix A(0, 0);
+    } catch(std::exception &e) {
+        std::cout<<"\n"<<e.what();
+    }
+    
+    try {
+        Matrix B(-2, 0);
+    } catch(std::exception &e) {
+        std::cout<<"\n"<<e.what();
+    }
+
+    try {
+        Matrix C({{1, 2}, {1, 2, 3}});
+    } catch(std::exception &e) {
+        std::cout<<"\n"<<e.what();
+    }
+    
+    try {
+        Matrix D({{}, {1, 2}});
+    } catch(std::exception &e) {
+        std::cout<<"\n"<<e.what();
+    }
+
+    try {
+        Matrix E({});
+    } catch(std::exception &e) {
+        std::cout<<"\n"<<e.what()<<"\n";
+    }
+    
+    std::cout<<"\nMatrica konstruisana vektorom: \n";
+    const Vector u = {3.14, 2.71, 1.59, 2.08};
+    u.Print();
+    std::cout<<"\nbroj elemenata: "<<u.NElems()<<"\n";
+    std::cout<<"\nmatrica:\n";
+    Matrix w(u); w.Print(7);
+
+    std::cout<<"\nDVA IZUZETKA: \n";
+    try {
+        std::cout<<w(-1, 14);
+    } catch(std::exception &e) {
+        std::cout<<"\n"<<e.what()<<"\n";
+    }
+
+    try {
+        w(-10, 47) = 55.55775849;
+    } catch(std::exception &e) {
+        std::cout<<"\n"<<e.what()<<"\n";
+    }
+    std::cout<<"\nTest operatora(): \n";
+    std::cout<<"w(2,1): "<<w(2, 1)<<"\n";
+    w(2, 1) = 4.67;
+    std::cout<<"w(2,1) = 4.67:\n"<<w(2, 1)<<"\n";
+
     Matrix matrica(2, 3);
     matrica = {{3.14, 2.71, 9.81}, {7.21, 2.20, 57.2958}};
-    std::cout<<"\nIZUZETAK:\n";
-    try {
-        Matrix matrica2 = {{1, 2}, {1, 2, 3}}; // Grbava matrica, izuzetak
-        } catch(std::exception &e) {
-            std::cout<<e.what()<<"\n";
-        } 
-    std::cout<<"\nMatrix A:\n"; matrica.Print();
-    std::cout<<"\nPrvi red Mat A: \n";
-    int foo = matrica.NCols();
-    for(double* i = matrica[1]; i<matrica[1]+foo; i++)
-        std::cout<<*i;
+    Matrix matrica2 = {{3.14, 2.71}, {7.21, 2.20}};
+    // NCols(), NRows(), operator[], Print() 
+    std::cout<<"\nMatrix A:\n"; matrica.Print(10);
+    std::cout<<"\nMat A ima: "<<matrica.NRows()<<
+        " reda i "<<matrica.NCols()<<" kolone.\n";
+    std::cout<<"\nPrvi red Mat A:\n";
     
-    // Norm(), mnozenja
+    int foo = matrica.NCols();
+    for(double* i = matrica[0]; i<matrica[0]+foo; i++)
+        std::cout<<*i<<"     ";
+    std::cout<<"\nDvaput uvecan prvi red Mat A:\n";
+    for(double* i = matrica[0]; i<matrica[0]+foo; i++)
+        *i*=2;        
+    for(double* i = matrica[0]; i<matrica[0]+foo; i++)
+        std::cout<<*i<<"     ";
+    std::cout<<"\n";
+
+    // Norm(), GetEpsilon(), operator*=(), PrintMatrix()
+    matrica2 *= 2.21;
+    std::cout<<"\nMatrica B:\n"; PrintMatrix(matrica2, 9);
     std::cout<<"\nNorma Matrice A: "<<matrica.Norm()<<"\n";
-    std::cout<<"\nMNOZENJE MATRICE VEKTOROM: \n";
-    std::cout<<"\nVector v:\n"; 
-    Vector v = {1.1, 2.2, 3.3}; v.Print();
+    std::cout<<"Norma Matrice B: "<<MatrixNorm(matrica2)<<"\n";
+    std::cout<<"Epsilon Matrice A: "<<matrica.GetEpsilon()<<"\n";
+    std::cout<<"Epsilon Matrice B: "<<matrica2.GetEpsilon()<<"\n";    
+
+    // Operatori +, -, *
+    std::cout<<"\nCETIRI IZUZETKA: \n";
+    try {
+        PrintMatrix(matrica + matrica2);
+        std::cout<<"\n";
+    } catch(std::exception &e) {
+        std::cout<<e.what()<<"\n";
+    }
+
+    try {
+        PrintMatrix(matrica-matrica2);
+    } catch(std::exception &e) {
+        std::cout<<e.what()<<"\n";
+    }
+
+    try {
+        PrintMatrix(matrica*matrica2);
+    } catch(std::exception &e) {
+        std::cout<<e.what()<<"\n";
+    }
+
+    try {
+        PrintMatrix(matrica2 * u);
+    } catch(std::exception &e) {
+        std::cout<<e.what()<<"\n";
+    }
+    Vector v = {1.1, 2.2, 3.3};
     Matrix A = {{1.11, 2.22, 3.33}, {2.33, 1.22, 1.11}, {4.33, 3.22, 2.11}};
     Matrix B = {{1.99, 2.47}, {3.32, 6.64}, {7.88, 9.66}, {5.755, 2.666}};
-    auto rezultat_mnozenja = A*v; rezultat_mnozenja.Print();
+    Matrix C = {{3.14, 1.61}, {2.71, 9.81}, {1.73, 1.41}};
+    std::cout<<"\nMatrix A: \n"; A.Print(7);
+    std::cout<<"\nMatrix B: \n"; B.Print(7);
+    std::cout<<"\nMatrix C: \n"; C.Print(7);
+    std::cout<<"\nVector v: \n"; v.Print(',');
+    std::cout<<"\nA + A:\n"; PrintMatrix(A+A);
+    std::cout<<"\nB - B:\n"; PrintMatrix(B-B);
+    std::cout<<"\nA * C:\n"; PrintMatrix(A*C);
+    std::cout<<"\nA * v:\n"; PrintVector(A*v);
+    std::cout<<"\nA * 2.71:\n"; PrintMatrix(A*2.71);
 
-    // Transponovanje A, Mnozenje skalarom, 
-    // Mnozenje dvije matrice(izuzetak)
-    std::cout<<"\nA transponovano:\n";
-    A.Transpose(); A.Print();
-    Matrix C = Transpose(A); C.Print();
-    C*=3; C.Print();
-    std::cout<<"\nIZUZETAK: \n";
+    // Operatori +=, -=, *=
+    std::cout<<"\nTRI IZUZETKA:\n";
     try {
-        PrintMatrix(A*B);
-        } catch(std::exception &e) {
-            std::cout<<e.what()<<"\n";
+        PrintMatrix(matrica += matrica2);
+        std::cout<<"\n";
+    } catch(std::exception &e) {
+        std::cout<<e.what()<<"\n";
     }
+
+    try {
+        PrintMatrix(matrica-=matrica2);
+    } catch(std::exception &e) {
+        std::cout<<e.what()<<"\n";
+    }
+
+    try {
+        PrintMatrix(matrica*=matrica2);
+    } catch(std::exception &e) {
+        std::cout<<e.what()<<"\n";
+    }
+    std::cout<<"\nA -= A:\n"; A-=A; A.Print(7);
+    std::cout<<"\nB += B:\n"; B+=B; B.Print(7);
+    std::cout<<"\nA *= C:\n"; A*=C; A.Print(7);
+    std::cout<<"\nC *= 3:\n"; C*=3; C.Print(7);
+    
+    // Transponse()
+    std::cout<<"\nMatrix B: \n"; B.Print(7); 
+    std::cout<<"\nB transponovano:\n";
+    B.Transpose(); B.Print(7);
+    std::cout<<"\nPonovno transponovano B (isto kao pocetno B):\n";
+    Matrix Bprim = Transpose(B); Bprim.Print(7);
+    
     std::cout<<"\n***KRAJ TESTIRANJA***\n";
     return 0;
 }

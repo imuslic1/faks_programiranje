@@ -52,17 +52,18 @@ inline Matrix::Matrix(int m, int n) {
 }
 
 inline Matrix::Matrix(const Vector &v) {
-    for(int i=0; i<matrica.at(0).size(); i++) {
-        matrica.at(0).at(i) = v[i];
+    matrica = std::vector<std::vector<double>>(v.NElems(), std::vector<double>(1, 0));    
+    for(int i=0; i<v.NElems(); i++) {
+        matrica[i][0] = v[i];
     }
 }
+
 inline Matrix::Matrix(std::initializer_list<std::vector<double>> l) {
     if(l.size()==0 || l.begin()->size()==0) throw std::range_error("Bad dimension");
     size_t common_size = l.begin()->size(); 
     for(auto a:l) 
         if(a.size()!=common_size) 
             throw std::logic_error("Bad matrix");
-            //provjeriti da li je orazan vektor pa baciti bad dimension
     matrica = l;
 }
 
@@ -148,7 +149,7 @@ inline void PrintMatrix(const Matrix &m, int width=10, double eps=-1) {
 }
 
 inline Matrix operator+(const Matrix &m1, const Matrix &m2) {
-    if(m1.NRows() != m2.NRows() || m2.NCols() != m2.NCols())
+    if((m1.NRows() != m2.NRows()) || (m1.NCols() != m2.NCols()))
         throw std::domain_error("Incompatible formats");
     Matrix rezultat(m1.NRows(), m1.NCols());
     for(int i=0; i<m1.NRows(); i++)
@@ -158,7 +159,7 @@ inline Matrix operator+(const Matrix &m1, const Matrix &m2) {
 }
 
 inline Matrix operator-(const Matrix &m1, const Matrix &m2) {
-    if(m1.NRows() != m2.NRows() || m2.NCols() != m2.NCols())
+    if((m1.NRows() != m2.NRows()) || (m1.NCols() != m2.NCols()))
         throw std::domain_error("Incompatible formats");
     Matrix rezultat(m1.NRows(), m1.NCols());
     for(int i=0; i<m1.NRows(); i++)

@@ -3,8 +3,10 @@ template <typename T> class Lista {
 
 public:
   Lista() {}
+  virtual ~Lista() {}
   virtual int brojElemenata() const = 0;
   virtual T &trenutni() = 0;
+  virtual T trenutni() const = 0;
   virtual bool prethodni() = 0;
   virtual bool sljedeci() = 0;
   virtual void pocetak() = 0;
@@ -13,47 +15,135 @@ public:
   virtual void dodajIspred(const T &el) = 0;
   virtual void dodajIza(const T &el) = 0;
   virtual T &operator[](int i) = 0;
+  virtual T operator[](int i) const = 0;
 };
 
 template <typename T> class NizLista : public Lista<T> {
+  T **lista;
   int velicina, kapacitet;
-  T *lista;
-  int _trenutni, _pocetak, _kraj;
+  int _trenutni, _kraj;
+  void realloc();
 
 public:
   NizLista()
-      : velicina(0), kapacitet(100), lista(new T[kapacitet]), _trenutni(-1),
-        _pocetak(-1), _kraj(-1) {}
-
-  NizLista(const NizLista<T>& l) {
-      velicina = l.velicina;
-      kapacitet = l.kapacitet;
-      lista = new T[kapacitet];
-      for(int i=0; i<l.brojElemenata(); i++)
-        lista[i] = l.lista[i];
-      _trenutni = l._trenutni;
-      _pocetak = l._pocetak;
-      _kraj = l._kraj;
+      : velicina(0), kapacitet(100), _trenutni(-1), _kraj(-1) {
+    lista = new T *[kapacitet];
   }
 
-  void operator=(const NizLista<T>& l) {
-    velicina = l.velicina;
-    kapacitet = l.kapacitet;
-    delete[] lista;
-    lista = new T[kapacitet];
-    for(int i=0; i<l.brojElemenata(); i++)
-        lista[i] = l.lista[i];
-    _trenutni = l._trenutni;
-    _pocetak = l._pocetak;
-    _kraj = l._kraj;
+  ~NizLista() {
+    for (int i = 0; i < velicina; i++)
+      delete[] lista[i];
   }
 
+  NizLista(const NizLista<T> &l);
+  NizLista<T> &operator=(const NizLista<T> &l);
   int brojElemenata() const override { return velicina; }
+  T &trenutni() override;
+  T trenutni() const override;
+  bool prethodni() override;
+  bool sljedeci() override;
+  void pocetak() override;
+  void kraj() override;
+  void obrisi() override;
+  void dodajIspred(const T &el) override;
+  void dodajIza(const T &el) override;
+  T &operator[](int i) override;
+  T operator[](int i) const override;
+};
 
-  T &trenutni() override { return lista[_trenutni]; }
-  T trenutni() const { return lista[_trenutni]; }
+template <typename T>
+class JednostrukaLista : public Lista<T> {
+private:
+  struct Cvor {
+      T element;
+      Cvor *sljedeci;
+      Cvor(const T &el, Cvor *sljedeci=nullptr):element(el), sljedeci(sljedeci) {}
+      Cvor(Cvor* sljedeci = nullptr):sljedeci(sljedeci) {}
+  };
+  Cvor *_prvi, *_posljednji, *_trenutni;
+  int velicina, duzina_L, duzina_D;
 
-  bool prethodni() override {
+public:
+  JednostrukaLista() : _prvi(new Cvor(nullptr)), _posljednji(_prvi), _trenutni(_prvi),
+        velicina(0), duzina_D(0), duzina_L(0) {}
+  ~JednostrukaLista() {
+      while(_prvi != nullptr) {
+          Cvor *temp = _prvi;
+          _prvi = _prvi->sljedeci;
+          delete temp;
+      }
+  }
+  JednostrukaLista(const JednostrukaLista<T> &jl);
+  JednostrukaLista<T> &operator=(const JednostrukaLista<T> &jl);
+  int brojElemenata() const override { return velicina; }
+  T trenutni() const override;
+  T &trenutni() override;
+  bool prethodni() override;
+  bool sljedeci() override;
+  void pocetak() override;
+  void kraj() override;
+  void obrisi() override;
+  void dodajIspred(const T &el) override;
+  void dodajIza(const T &el) override;
+  T operator[](int i) const override;
+  T &operator[](int i) override;
+};
+
+/******************************
+ * 
+ * Implementacija NizListe:
+ * 
+*******************************/
+
+  template <typename T>
+  void NizLista<T>::realloc() {
+    int novi_kapacitet = 2 * kapacitet;
+    T **novaLista = new T *[novi_kapacitet]();
+    for (int i = 0; i < velicina; i++)
+      novaLista[i] = lista[i]; 
+    delete[] lista;
+    lista = novaLista;
+    kapacitet = novi_kapacitet;
+  }
+  
+  template <typename T> NizLista<T>::NizLista(const NizLista<T> &l) {
+    velicina = l.brojElemenata();
+    kapacitet = l.kapacitet;
+    lista = new T *[kapacitet];
+    for (int i = 0; i < l.brojElemenata(); i++)
+      lista[i] = new T(*l.lista[i]);
+  }
+
+  template <typename T>
+  NizLista<T> &NizLista<T>::operator=(const NizLista<T> &l) {
+    if (this == &l)
+      return *this;
+    while (this->kapacitet < l.kapacitet)
+      this->realloc();
+    for (int i = 0; i < velicina; i++)
+      delete this->lista[i];
+    velicina = l.velicina;
+    for (int i = 0; i < l.brojElemenata(); i++)
+      lista[i] = new T(*l.lista[i]);
+    return *this;
+  }
+
+  template <typename T>
+  T &NizLista<T>::trenutni() {
+    if (this->velicina == 0)
+      throw std::logic_error("Lista je prazna!");
+    return *(lista[_trenutni]);
+  }
+  template <typename T>
+  T NizLista<T>::trenutni() const {
+    if (this->velicina == 0)
+      throw std::logic_error("Lista je prazna!");
+    return *(lista[_trenutni]);
+  }
+  template <typename T>
+  bool NizLista<T>::prethodni() {
+    if (this->velicina == 0)
+      throw std::logic_error("Lista je prazna!");
     if (_trenutni > 0) {
       --_trenutni;
       return true;
@@ -61,260 +151,310 @@ public:
     return false;
   }
 
-  bool sljedeci() override {
+  template <typename T>
+  bool NizLista<T>::sljedeci() {
+    if (this->velicina == 0)
+      throw std::logic_error("Lista je prazna!");
     if (_trenutni != _kraj) {
       ++_trenutni;
       return true;
     }
     return false;
   }
+  template <typename T>
+  void NizLista<T>::pocetak() {
+    if (this->velicina == 0)
+      throw std::logic_error("Lista je prazna!");
+    _trenutni = 0;
+  }
 
-  void pocetak() override { _trenutni = _pocetak; }
+  template <typename T>
+  void NizLista<T>::kraj() {
+    if (this->velicina == 0)
+      throw std::logic_error("Lista je prazna!");
+    _trenutni = _kraj;
+  }
 
-  void kraj() override { _trenutni = _kraj; }
-
-  void obrisi() override {
-    if (velicina == 0)
-      return;
-    if (_trenutni == _kraj) {
-      --_trenutni;
-      --velicina;
-      return;
-    }
+  template <typename T>
+  void NizLista<T>::obrisi() {
+    if (this->velicina == 0)
+      throw std::logic_error("Lista je prazna!");
+    delete lista[_trenutni];
     for (int i = _trenutni; i < _kraj - 1; i++)
       lista[i] = lista[i + 1];
+    lista[_trenutni - 1] = nullptr;
+    if (_trenutni == velicina - 1 && _trenutni != 0)
+      --_trenutni;
     --velicina;
-    ++_trenutni;
   }
 
-  void dodajIspred(const T &el) override {
-    if (velicina == 0) {
-      lista[0] = el;
+  template <typename T>
+  void NizLista<T>::dodajIspred(const T &el) {
+    if (velicina >= kapacitet)  //kada ima potreba za realokacijom
+      this->realloc();
+    if (velicina == 0) {        //prvi element
+      lista[0] = new T(el);
       _trenutni = 0;
+      _kraj = _trenutni;
       ++velicina;
-      _pocetak = _kraj = _trenutni;
       return;
-    } else if (velicina == kapacitet) {
-      kapacitet *= 2;
-
-      T *novaLista = new T[kapacitet];
-      for (int i = 0; i < velicina; ++i)
-        novaLista[i] = lista[i];
-
-      delete[] lista;
-      lista = novaLista;
     }
+    //dodavanje ako nije specijalni slucaj:
     ++_kraj;
     for (int i = _kraj; i > _trenutni; --i)
-      lista[i] = lista[i - 1];
-
-    lista[_trenutni] = el;
+      lista[i] = lista[i-1];
+    lista[_trenutni] = new T(el);
     ++_trenutni;
     ++velicina;
-    
   }
 
-  void dodajIza(const T &el) override {
-    if (velicina == 0) {
-      lista[0] = el;
+  template <typename T>
+  void NizLista<T>::dodajIza(const T &el) {
+    if(velicina >= kapacitet)   //kada ima porebe za realokacijom
+      this->realloc();
+    if (velicina == 0) {        //prvi element
+      lista[0] = new T(el);
       _trenutni = 0;
+      _kraj = _trenutni;
       ++velicina;
-      _pocetak = _kraj = _trenutni;
       return;
-    } else if (velicina == kapacitet) {
-      kapacitet *= 2;
-      T *novaLista = new T[kapacitet];
-
-      for (int i = 0; i < velicina; ++i)
-        novaLista[i] = lista[i];
-      delete[] lista;
-      lista = novaLista;
-    }
+    } 
+    //dodavanje ako nije specijalan slucaj:
     ++_kraj;
-    for (int i = _kraj; i > _trenutni + 1; --i)
-      lista[i] = lista[i - 1];
-    lista[_trenutni + 1] = el;
+    for (int i=_kraj; i>_trenutni+1; --i)
+      lista[i] = lista[i-1];
+    lista[_trenutni+1] = new T(el);
     ++velicina;
   }
-
-  T &operator[](int i) override {
+  template <typename T>
+  T &NizLista<T>::operator[](int i) {
     if (i >= 0 && i <= velicina) {
-      return lista[i];
+      return *(lista[i]);
     }
     throw std::range_error("Indeks nije validan");
   }
 
-  T &operator[](int i) const {
-      if (i >= 0 && i <= velicina) {
-      return lista[i];
+  template <typename T>
+  T NizLista<T>::operator[](int i) const {
+    if (i >= 0 && i <= velicina) {
+      return *(lista[i]);
     }
     throw std::range_error("Indeks nije validan");
   }
 
-  ~NizLista() { delete[] lista; }
-};
 
-template <typename T> class cvor {
-public:
-  T *podaci;
-  cvor<T> *next;
+/******************************
+ * 
+ * Implementacija JednostrukeListe:
+ * 
+*******************************/
 
-  cvor(const T &value) : podaci(new T(value)), next(nullptr) {}
-  ~cvor() { delete podaci; }
-};
 
-template <typename T> class JednostrukaLista : public Lista<T> {
+template <typename T> 
+JednostrukaLista<T>::JednostrukaLista(const JednostrukaLista<T> &jl) {
+  velicina = jl.velicina;
+  _prvi = new Cvor();
+  Cvor *temp1 = jl._prvi->sljedeci;
+  Cvor *temp2 = _prvi;
 
-    /**
-    *
-    *   TODO: dodati konstantne verzije operatora [] i trenutni();
-    *
-    */
-
-private:
-  cvor<T> *_pocetak;
-  cvor<T> *_trenutni;
-  int velicina;
-
-public:
-  JednostrukaLista() : _pocetak(nullptr), _trenutni(nullptr), velicina(0) {}
-
-  int brojElemenata() const override { return velicina; }
-
-  T &trenutni() override {
-    if (_trenutni != nullptr) {
-      return *(_trenutni->podaci);
-    } else {
-      throw std::out_of_range("Current is nullptr.");
-    }
+  while(temp1 != nullptr) {
+    temp2->sljedeci = new Cvor(temp1->element);
+    temp1 = temp1->sljedeci;
+    temp2 = temp2->sljedeci;
   }
 
-  bool prethodni() override {
-    if (_trenutni == nullptr || _trenutni == _pocetak) {
-      return false;
-    } else {
-      cvor<T> *temp = _pocetak;
-      while (temp->next != _trenutni) {
-        temp = temp->next;
-      }
-      _trenutni = temp;
-      return true;
+  _posljednji = temp2;
+  _trenutni = _prvi;
+  if(velicina > 0) {
+    duzina_L = 1;
+    duzina_D = velicina-1;
+  }
+}
+
+template <typename TipEl>
+JednostrukaLista<TipEl> &
+JednostrukaLista<TipEl>::operator=(const JednostrukaLista<TipEl> &jl) {
+    while (_prvi != nullptr) {
+        Cvor *temp = _prvi;
+        _prvi = _prvi->sljedeci;
+        delete temp;
     }
+    velicina = jl.velicina;
+    _prvi = new Cvor();
+    Cvor *temp1 = jl._prvi->sljedeci;
+    Cvor *temp2 = _prvi;
+
+    while (temp1 != nullptr) {
+        temp2->sljedeci = new Cvor(temp1->element);
+        temp1 = temp1->sljedeci;
+        temp2 = temp2->sljedeci;
+    }
+    _posljednji = temp2;
+    _trenutni = _prvi;
+    if (velicina > 0) {
+        duzina_L = 1;
+        duzina_D = velicina - 1;
+    }
+    return *this;
+}
+
+template <typename T>
+T &JednostrukaLista<T>::trenutni() {
+  if (velicina == 0) 
+    throw std::range_error("Lista je prazna");
+  return *(_trenutni->sljedeci)->podaci;  
+}
+
+template <typename T>
+T JednostrukaLista<T>::trenutni() const {
+  if (velicina == 0) 
+    throw std::range_error("Lista je prazna");
+  return *(_trenutni->sljedeci)->podaci;  
+}
+
+template <typename T>
+bool JednostrukaLista<T>::prethodni() {
+  if(velicina == 0)
+    throw std::range_error("Lista je prazna");
+  if(duzina_L==1) return false;
+  Cvor *prethodni = _prvi;
+    while (prethodni->sljedeci != _trenutni) prethodni = prethodni->sljedeci;
+
+    _trenutni = prethodni;
+    --duzina_L;
+    ++duzina_D;
+    return true;
+}
+
+template <typename T>
+bool JednostrukaLista<T>::sljedeci() {
+  if (velicina == 0)
+        throw std::logic_error("Lista je prazna");
+  if (duzina_D == 0) return false;
+  _trenutni = _trenutni->sljedeci;
+  duzina_L++;
+  duzina_D--;
+  return true;
+}
+
+template <typename T>
+void JednostrukaLista<T>::pocetak() {
+  if (velicina == 0)
+      throw std::range_error("Prazna lista");
+  _trenutni = _prvi;
+  duzina_L = 1;
+  duzina_D = velicina - 1;
+}
+
+template <typename T>
+void JednostrukaLista<T>::kraj() {
+  if(velicina == 0)
+    throw std::range_error("Prazna lista");
+  _trenutni = _prvi->sljedeci;
+  
+   
+  while (_trenutni->sljedeci != _posljednji)
+    _trenutni = _trenutni->sljedeci;
+}
+
+template <typename T>
+void JednostrukaLista<T>::obrisi() {
+  if(velicina == 0 || _trenutni = nullptr)
+    throw std::range_error("Prazna lista");
+  if(duzina_D == 0) {
+    delete _posljednji;
+    _trenutni->sljedeci = nullptr;
+    _posljednji = _trenutni;
+    prethodni();
+    --duzina_D;
+    --velicina;
   }
 
-  bool sljedeci() override {
-    if (_trenutni != nullptr && _trenutni->next != nullptr) {
-      _trenutni = _trenutni->next;
-      return true;
-    } else {
-      return false;
-    }
+  Cvor *temp = (_trenutni->sljedeci)->sljedeci;
+  delete _trenutni->sljedeci;
+  _trenutni->sljedeci = temp;
+  --duzina_L;
+  --velicina;
+}
+
+template <typename T>
+void JednostrukaLista<T>::dodajIspred(const T &el) {
+  Cvor *newCvor = new Cvor(el, _trenutni->sljedeci);
+  if(velicina == 0) {
+    _prvi->sljedeci = newCvor;
+    _posljednji = newCvor;
+    ++velicina;
+    ++duzina_L;
+    return;
+  }
+  _trenutni->sljedeci = newCvor;
+  _trenutni = newCvor;
+  ++velicina;
+  ++duzina_L;
+}
+
+template <typename T>
+void JednostrukaLista<T>::dodajIza(const T &el) {
+  if (velicina == 0) {
+    Cvor *newCvor = new Cvor(el, _prvi->sljedeci);
+    _prvi->sljedeci = newCvor;
+    ++velicina;
+    _posljednji = newCvor;
+    ++duzina_L;
+    return;
+  }
+  Cvor *newCvor = new Cvor(el, (_trenutni->sljedeci)->sljedeci);
+  (_trenutni->sljedeci)->sljedeci = newCvor;
+  if(_trenutni->sljedeci == _posljednji)
+    _posljednji = newCvor;
+  ++velicina;
+  ++duzina_D;
+}
+
+template <typename T>
+T &JednostrukaLista<T>::operator[](int i) {
+  if (i < 0 || i >= velicina) {
+    throw std::range_error("Indeks nije validan");
   }
 
-  void pocetak() override { _trenutni = _pocetak; }
+  Cvor temp = _prvi->sljedeci;
+  for (int j = 0; j < i; ++j) temp = temp->next;
 
-  void kraj() override {
-    if (_pocetak == nullptr) {
-      _trenutni = nullptr;
-    } else {
-      while (_trenutni->next != nullptr) {
-        _trenutni = _trenutni->next;
-      }
-    }
+  return temp->element;
+}
+
+template <typename T>
+T JednostrukaLista<T>::operator[](int i) const {
+  if (i < 0 || i >= velicina) {
+    throw std::range_error("Indeks nije validan");
   }
 
-  void obrisi() override {
-    if (_trenutni != nullptr) {
-      if (_trenutni == _pocetak) {
-        _pocetak = _pocetak->next;
-        delete _trenutni;
-        _trenutni = _pocetak;
-      } else {
-        cvor<T> *temp = _pocetak;
-        while (temp->next != _trenutni) {
-          temp = temp->next;
-        }
-        temp->next = _trenutni->next;
-        delete _trenutni;
-        _trenutni = temp->next;
-      }
-      velicina--;
-    }
-  }
+  Cvor temp = _prvi->sljedeci;
+  for (int j = 0; j < i; ++j) temp = temp->next;
 
-  void dodajIspred(const T &el) override {
-    cvor<T> *newcvor = new cvor<T>(el);
-    if (_trenutni != nullptr) {
-      if (_trenutni == _pocetak) {
-        newcvor->next = _pocetak;
-        _pocetak = newcvor;
-      } else {
-        cvor<T> *temp = _pocetak;
-        while (temp->next != _trenutni) {
-          temp = temp->next;
-        }
-        temp->next = newcvor;
-        newcvor->next = _trenutni;
-      }
-      velicina++;
-    } else {
-      // If the list is empty, add the element as the only cvor.
-      _pocetak = newcvor;
-      _trenutni = newcvor;
-      velicina++;
-    }
-  }
-
-  void dodajIza(const T &el) override {
-    cvor<T> *newcvor = new cvor<T>(el);
-    if (_trenutni != nullptr) {
-      newcvor->next = _trenutni->next;
-      _trenutni->next = newcvor;
-      velicina++;
-    } else {
-      // If the list is empty, add the element as the only cvor.
-      _pocetak = newcvor;
-      _trenutni = newcvor;
-      velicina++;
-    }
-  }
-
-  T &operator[](int i) override {
-    if (i < 0 || i >= velicina) {
-      throw std::out_of_range("Index out of bounds.");
-    }
-
-    cvor<T> *temp = _pocetak;
-    for (int j = 0; j < i; ++j) {
-      temp = temp->next;
-    }
-
-    return *(temp->podaci);
-  }
-
-};
-
+  return temp->element;
+}
 
 
 int main() {
-    Lista<int>* l = new NizLista<int>;
-    std::cout<<"\nKREIRAO NizListu!\n";
-    for (int i = 0; i < 100000; i++)
+  Lista<int> *l = new NizLista<int>;
+  std::cout << "\nKREIRAO NizListu!\n";
+  for (int i = 0; i < 100000; i++)
     l->dodajIza(5);
 
-    std::cout << "\nDODAO\n";
+  std::cout << "\nDODAO\n";
 
-    try {
-        std::cout << "\nCurrent element: " << l->trenutni() << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
-    }
+  try {
+    std::cout << "\nCurrent element: " << l->trenutni() << std::endl;
+  } catch (const std::exception &e) {
+    std::cerr << "Exception: " << e.what() << std::endl;
+  }
 
-    for (int i = 0; i < 13; i++) {
-        std::cout<<l->trenutni()<<" ";
-        l->sljedeci();
-    }
+  for (int i = 0; i < 13; i++) {
+    std::cout << l->trenutni() << " ";
+    l->sljedeci();
+  }
 
-    delete l;
-    return 0;
+  delete l;
+  return 0;
 }

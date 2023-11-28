@@ -11,6 +11,7 @@ private:
       Cvor(const T &el, Cvor *sljedeci=nullptr):element(el), sljedeci(sljedeci) {}
       Cvor(Cvor* sljedeci = nullptr):sljedeci(sljedeci) {}
   };
+  void ispisiUnazad2(Cvor *sljedeci);
   Cvor *_prvi, *_posljednji, *_trenutni;
   int velicina, duzina_L, duzina_D;
 
@@ -38,6 +39,8 @@ public:
   void dodajIza(const T &el) override;
   T operator[](int i) const override;
   T &operator[](int i) override;
+  
+  void ispisiUnazad();
 };
 
 template <typename T>
@@ -165,15 +168,15 @@ template <typename T> void JednostrukaLista<T>::obrisi() {
 
 template <typename T> void JednostrukaLista<T>::dodajIspred(const T &el) {
   Cvor *newCvor = new Cvor(el, _trenutni->sljedeci);
-  if (velicina == 0) {
+  if (velicina == 0) {    //obrisi || uslov
     _prvi->sljedeci = newCvor;
     _posljednji = newCvor;
-    ++velicina;
-    ++duzina_L;
-    return;
-  }
+  } else {
   _trenutni->sljedeci = newCvor;
-  _trenutni = newCvor;
+  
+  
+  }
+  _trenutni = newCvor;    //vrati u else iznad
   ++velicina;
   ++duzina_L;
 }
@@ -217,4 +220,23 @@ template <typename T> T JednostrukaLista<T>::operator[](int i) const {
     trenutni = trenutni->sljedeci;
 
   return trenutni->element;
+}
+
+template <typename T> 
+void JednostrukaLista<T>::ispisiUnazad2(Cvor *c) {
+  //std::cout<<"\n***POZVAN ispisiUnazad2()***\n";
+  if(c == nullptr)
+    return;
+  
+  return ispisiUnazad2(c->sljedeci);
+  std::cout<<c->element<<" ";
+  
+} 
+
+template <typename T> void JednostrukaLista<T>::ispisiUnazad() {
+  //std::cout<<"\n***POZVAN ispisiUnazad()***\n";
+  ispisiUnazad2(_prvi->sljedeci);
+  std::cout<<"\n";
+    
+  return;  
 }

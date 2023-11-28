@@ -73,27 +73,50 @@ template <typename T> void obrisi_test(Lista<T> &l) {
     std::cout<<"obrisi() uspjesno izvrsen.\n";
 }
 
+template <typename T>
+void printList(JednostrukaLista<T>& lista) {
+  for (int i = 0; i < lista.brojElemenata(); i++) {
+    std::cout << lista[i] << " ";
+    //lista.sljedeci();
+  }
+
+  std::cout << "\n";
+
+  lista.ispisiUnazad();
+}
+
 int main() {
+    
     JednostrukaLista<int> jLista;
-    for(int i=0; i<1000; i++)
-        jLista.dodajIza(i);
+    
+    for(int i=0; i<10; i++) {
+        jLista.dodajIspred(i);
+        jLista.sljedeci();
+    }
+
+    
     brElemenata_test(jLista);
+    for (int i = 0; i < jLista.brojElemenata(); i++)
+        std::cout << jLista[i] << " ";
+    jLista.ispisiUnazad();
+    /*
     trenutni_test(jLista);
     prethodni_test(jLista);
     sljedeci_test(jLista);
     pocetak_test(jLista);
     kraj_test(jLista);
 
-    dodajIspred_test(jLista, 42);
+   // dodajIspred_test(jLista, 42);
     dodajIza_test(jLista, 99);
 
-    dodajIspred_test(jLista, "Hello");
+    //dodajIspred_test(jLista, "Hello");
     dodajIza_test(jLista, 3.14);
 
+    
     obrisi_test(jLista);
 
     NizLista<int> nLista;
-    for(int i=0; i<1000; i++)
+    for(int i=0; i<10; i++)
         nLista.dodajIza(i);
     brElemenata_test(nLista);
     trenutni_test(nLista);
@@ -102,13 +125,16 @@ int main() {
     pocetak_test(nLista);
     kraj_test(nLista);
 
-    dodajIspred_test(nLista, 42);
+    //dodajIspred_test(nLista, 42);
     dodajIza_test(nLista, 99);
 
-    dodajIspred_test(nLista, "Hello");
+    //dodajIspred_test(nLista, "Hello");
     dodajIza_test(nLista, 3.14);
 
     obrisi_test(nLista);
+    */
+
+   //jLista.ispisiUnazad();
 
 
     return 0;

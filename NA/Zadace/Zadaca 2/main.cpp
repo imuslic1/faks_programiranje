@@ -23,11 +23,13 @@
 #include "LUDecomposer.h"
 #include "QRDecomposer.h"
 
-int main() {
+/**
+ * @brief Aplikativni testovi
+ *
+ * @return int 
+ */
 
-    /**
-     * Main funkcija - aplikativni testovi 
-    */
+int main() {
 
     try {
         // Test Matrix creation and basic operations

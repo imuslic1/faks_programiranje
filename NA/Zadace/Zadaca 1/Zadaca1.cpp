@@ -745,6 +745,6 @@ int main() {
     std::cout<<"\nPonovno transponovano B (isto kao pocetno B):\n";
     Matrix Bprim = Transpose(B); Bprim.Print(7);
     
-    std::cout<<"\n***KRAJ TESTIRANJA***\n";
+    std::cout<<"\n***KRAJ TESTIRANJA***\n";   
     return 0;
 }

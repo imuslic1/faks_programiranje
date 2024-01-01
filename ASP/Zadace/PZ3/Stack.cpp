@@ -20,6 +20,7 @@ int main() {
         std::cout<<"\nHandled exception: "<<e.what()<<"\n";
     }
 
+    Stek<std::vector<int>> s;
 
     return 0;
 }

@@ -18,7 +18,8 @@ public:
   virtual T operator[](int i) const = 0;
 };
 
-template <typename T> class NizLista : public Lista<T> {
+template <typename T> 
+class NizLista : public Lista<T> {
   T **lista;
   int velicina, kapacitet;
   int _trenutni, _kraj;

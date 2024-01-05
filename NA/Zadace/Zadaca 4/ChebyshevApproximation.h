@@ -1,8 +1,10 @@
 #ifndef CHEBYSHEV_APPROXIMATION
 #define CHEBYSHEV_APPROXIMATION
+#define PI 4*atan(1)
 
-#include <bits/stdc++.h>
-#define PI 4*atan(1);
+#include <vector>
+#include <cmath>
+#include <stdexcept>
 
 class ChebyshevApproximation {
     int m, n;
@@ -13,20 +15,23 @@ public:
     ChebyshevApproximation(fun_T f, double xmin, double xmax, int n) {
         if(xmin>=xmax || n<1)
             throw std::domain_error("Bad parameters");
+        this->c.resize(n+1);
         this->m = this->n = n;
-        std::vector<double> w(n);
-        std::vector<double> v(n);
+        this->xmin = xmin;
+        this->xmax = xmax;
+        std::vector<double> w(4*n+4);
+        std::vector<double> v(n+1);
 
-        for(int i=0; i<=n; ++i)
-            w[i] = cos(i*PI/(2*n+2));
-        for(int i=0; i<=floor(n/2); ++i)
-            v[i] = f((xmin + xmax + (xmax - xmin) * w.at(2*i+1))/2);
-        for(int i=floor(n/2)+1; i<=n; ++i)
-            v[i] = f((xmin + xmax - (xmax - xmin) * w.at(2*n+1-2*i))/2);
+        for(int i=0; i<=n+1; ++i)
+            w.at(i) = cos(PI*i/(2*n+2));
+        for(int i=0; i<=n/2; ++i)
+            v.at(i) = f((xmin + xmax + (xmax - xmin) * w.at(2*i+1))/2.);
+        for(int i=n/2+1; i<=n; ++i)
+            v.at(i) = f((xmin + xmax - (xmax - xmin) * w.at(2*n+1-2*i))/2.);
         for(int k=0; k<=n; ++k) {
             double s = 0;
             for(int i=0; i<=n; ++i) {
-                short p = k*(2*i+1) % 4*n+4;
+                int p = (k*(2*i+1)) % (4*n+4);
                 if(p>2*n+2)
                     p = 4*n+4-p;
                 if(p>n+1)
@@ -56,15 +61,29 @@ inline void ChebyshevApproximation::set_m(int m) {
 inline void ChebyshevApproximation::trunc(double eps) {
     if(eps<0) throw std::domain_error("Bad tolerance");
 
-    while(m>1 && abs(c[m]) < eps) --m;
+    while(m>1 && std::abs(c[m]) < eps) --m;
 
-    if(m == 1 && abs(c[0]) < eps)
+    if(m == 1 && std::abs(c[0]) < eps)
         throw std::domain_error("Bad tolerance");
 }
 
-inline double ChebyshevApproximation::operator()(double x) const {
+double ChebyshevApproximation::operator()(double x) const {
+    //potencijalno long double zbog real aritmetika shenanigans
+    double t = (2 * x - xmin - xmax) / (xmax - xmin);
+    double p = 1;
+    double q = t;
+    double s = c[0]/2 + c[1]*t;
     
+    for(int k=2; k<=m; ++k) {
+        double r = 2*t*q - p;
+        s += c[k] * r;
+        p = q;
+        q = r;
+    }
+    return s;
 }
+
+
 
 
 

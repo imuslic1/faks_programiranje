@@ -29,6 +29,10 @@ int main() {
     std::cout<<w<<l<<f<<sp<<"Vrijednost primitivne f-je: "<<intvalue<<std::endl;
     std::cout<<w<<l<<f<<sp<<"Aproksimacija primitivne f-je: "<<integral(testx)<<std::endl;
 
+    ChebyshevApproximation apsinus(sin, 0, 2*PI, 10);
+    std::cout<<w<<l<<f<<sp<<"Vrijednost integrala f-je sin(x) od 0 do 2*PI: "<<apsinus.integrate();
+    std::cout<<w<<l<<f<<sp<<"Vrijednost integrala f-je sin(x) od 0 do PI: "<<apsinus.integrate(0, PI);
+
 
 
     //chebyshevljeva radi!!!

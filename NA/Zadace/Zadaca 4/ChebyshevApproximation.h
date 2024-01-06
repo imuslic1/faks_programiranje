@@ -112,41 +112,23 @@ ChebyshevApproximation ChebyshevApproximation::derivative() const {
     cprim[m-1] = mi * m * c[m];
     cprim[m-2] = mi * (m-1) * c[m-1];
 
-    for(int k = m-3; k>=0; --k) {
-        cprim[k] = cprim[k+2] + mi*(k+1)*c[k+1];
-    }
-    ChebyshevApproximation to_return(cprim, xmin, xmax, m, n);   
+    for(int k = m-3; k>=0; --k)
+        cprim[k] = cprim[k+2] + mi*(k+1)*c[k+1];   
 
-    return to_return;
+    return ChebyshevApproximation(cprim, xmin, xmax, m, n);
 }
 
 ChebyshevApproximation ChebyshevApproximation::antiderivative() const {
-    /*
     std::vector<double> cint(this->n+2); //cint[0] = 0
-    double mi = (xmax-xmin) / 4;
-    
-    for(int k=1; k<=m-1; ++k) {
-        cint[k] = mi*(c[k-1]-c[k+1])/k;
-    }
+    double mi = (xmax-xmin) / 4;    
     cint[0] = 0;
     cint[m] = mi * c[m-1]/m;
     cint[m+1] = mi * (c[m]/(m+1));        //k=m+1 => m=k-1
 
-    ChebyshevApproximation to_return(cint, xmin, xmax, m, n); 
-    return to_return;
-    */
-
-    std::vector<double> koef(m+2);
     for(int k=1; k<=m-1; ++k)
-        koef[k] = (xmax-xmin)/(4*k)*(c[k-1]-c[k+1]);
-    koef[0] = 0;
-    koef[m] = (xmax-xmin)/(4*m)*c[m-1];
-    koef[m+1] = (xmax-xmin)/(4*m+4)*c[m];
+        cint[k] = mi*(c[k-1]-c[k+1])/k;
 
-    return ChebyshevApproximation (koef, xmin, xmax, m, n);
-    
-
-
+    return ChebyshevApproximation(cint, xmin, xmax, m, n);
 }
 
 

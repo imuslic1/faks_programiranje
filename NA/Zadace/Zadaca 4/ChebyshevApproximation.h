@@ -121,6 +121,7 @@ ChebyshevApproximation ChebyshevApproximation::derivative() const {
 }
 
 ChebyshevApproximation ChebyshevApproximation::antiderivative() const {
+    /*
     std::vector<double> cint(this->n+2); //cint[0] = 0
     double mi = (xmax-xmin) / 4;
     
@@ -133,7 +134,19 @@ ChebyshevApproximation ChebyshevApproximation::antiderivative() const {
 
     ChebyshevApproximation to_return(cint, xmin, xmax, m, n); 
     return to_return;
+    */
+
+    std::vector<double> koef(m+2);
+    for(int k=1; k<=m-1; ++k)
+        koef[k] = (xmax-xmin)/(4*k)*(c[k-1]-c[k+1]);
+    koef[0] = 0;
+    koef[m] = (xmax-xmin)/(4*m)*c[m-1];
+    koef[m+1] = (xmax-xmin)/(4*m+4)*c[m];
+
+    return ChebyshevApproximation (koef, xmin, xmax, m, n);
     
+
+
 }
 
 

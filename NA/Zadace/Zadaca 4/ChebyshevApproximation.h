@@ -10,6 +10,8 @@ class ChebyshevApproximation {
     int m, n;
     double xmin, xmax;
     std::vector<double> c;
+    ChebyshevApproximation(std::vector<double> c, double xmin, double xmax, int m, int n)
+        : m(m), n(n), xmin(xmin), xmax(xmax), c(c) {}
 public:
     template <typename fun_T>
     ChebyshevApproximation(fun_T f, double xmin, double xmax, int n) {
@@ -68,6 +70,8 @@ inline void ChebyshevApproximation::trunc(double eps) {
 }
 
 double ChebyshevApproximation::operator()(double x) const {
+    if(x<xmin || x>xmax)
+        throw std::domain_error("Bad argument");
     //potencijalno long double zbog real aritmetika shenanigans
     double t = (2 * x - xmin - xmax) / (xmax - xmin);
     double p = 1;
@@ -83,7 +87,54 @@ double ChebyshevApproximation::operator()(double x) const {
     return s;
 }
 
+double ChebyshevApproximation::derivative(double x) const {
+    if(x<xmin || x>xmax)
+        throw std::domain_error("Bad argument");
+    double t = (2 * x - xmin - xmax) / (xmax - xmin);
+        double p = 1;
+        double q = 4 * t;
+        double s = c[1] + c[2]*q;
 
+        for (int k=3; k<=m; ++k) {
+            double r = k*(2*t*q / (k-1) - p/(k-2));
+            s += c[k] * r;
+            p = q;
+            q = r;
+        }
+
+        return 2*s / (xmax-xmin);
+}
+
+ChebyshevApproximation ChebyshevApproximation::derivative() const {
+    std::vector<double> cprim(this->n+1);
+    double mi = 4./(xmax - xmin);
+    cprim[m] = 0;
+    cprim[m-1] = mi * m * c[m];
+    cprim[m-2] = mi * (m-1) * c[m-1];
+
+    for(int k = m-3; k>=0; --k) {
+        cprim[k] = cprim[k+2] + mi*(k+1)*c[k+1];
+    }
+    ChebyshevApproximation to_return(cprim, xmin, xmax, m, n);   
+
+    return to_return;
+}
+
+ChebyshevApproximation ChebyshevApproximation::antiderivative() const {
+    std::vector<double> cint(this->n+2); //cint[0] = 0
+    double mi = (xmax-xmin) / 4;
+    
+    for(int k=1; k<=m-1; ++k) {
+        cint[k] = mi*(c[k-1]-c[k+1])/k;
+    }
+    cint[0] = 0;
+    cint[m] = mi * c[m-1]/m;
+    cint[m+1] = mi * (c[m]/(m+1));        //k=m+1 => m=k-1
+
+    ChebyshevApproximation to_return(cint, xmin, xmax, m, n); 
+    return to_return;
+    
+}
 
 
 

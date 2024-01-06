@@ -7,40 +7,40 @@
 #include <stdexcept>
 
 class ChebyshevApproximation {
-    int m, n;
+    int m;
     double xmin, xmax;
     std::vector<double> c;
-    ChebyshevApproximation(std::vector<double> c, double xmin, double xmax, int m, int n)
-        : m(m), n(n), xmin(xmin), xmax(xmax), c(c) {}
+    ChebyshevApproximation(std::vector<double> c, double xmin, double xmax)
+        : xmin(xmin), xmax(xmax), m(c.size()-1) { this->c = c; }
 public:
     template <typename fun_T>
-    ChebyshevApproximation(fun_T f, double xmin, double xmax, int n) {
-        if(xmin>=xmax || n<1)
+    ChebyshevApproximation(fun_T f, double xmin, double xmax, int m) {
+        if(xmin>=xmax || m<1)
             throw std::domain_error("Bad parameters");
-        this->c.resize(n+1);
-        this->m = this->n = n;
+        this->c.resize(m+1);
+        this->m = m;
         this->xmin = xmin;
         this->xmax = xmax;
-        std::vector<double> w(4*n+4);
-        std::vector<double> v(n+1);
+        std::vector<double> w(4*m+4);
+        std::vector<double> v(m+1);
 
-        for(int i=0; i<=n+1; ++i)
-            w.at(i) = cos(PI*i/(2*n+2));
-        for(int i=0; i<=n/2; ++i)
+        for(int i=0; i<=m+1; ++i)
+            w.at(i) = cos(PI*i/(2*m+2));
+        for(int i=0; i<=m/2; ++i)
             v.at(i) = f((xmin + xmax + (xmax - xmin) * w.at(2*i+1))/2.);
-        for(int i=n/2+1; i<=n; ++i)
-            v.at(i) = f((xmin + xmax - (xmax - xmin) * w.at(2*n+1-2*i))/2.);
-        for(int k=0; k<=n; ++k) {
+        for(int i=m/2+1; i<=m; ++i)
+            v.at(i) = f((xmin + xmax - (xmax - xmin) * w.at(2*m+1-2*i))/2.);
+        for(int k=0; k<=m; ++k) {
             double s = 0;
-            for(int i=0; i<=n; ++i) {
-                int p = (k*(2*i+1)) % (4*n+4);
-                if(p>2*n+2)
-                    p = 4*n+4-p;
-                if(p>n+1)
-                    s -= v[i]*w[2*n+2-p];
+            for(int i=0; i<=m; ++i) {
+                int p = (k*(2*i+1)) % (4*m+4);
+                if(p>2*m+2)
+                    p = 4*m+4-p;
+                if(p>m+1)
+                    s -= v[i]*w[2*m+2-p];
                 else s += v[i] * w[p];
             }
-            c[k] = 2*s/(n+1);
+            c[k] = 2*s/(m+1);
         }
     }
 
@@ -55,7 +55,7 @@ public:
 };
 
 inline void ChebyshevApproximation::set_m(int m) { 
-    if(m<1 || m>n)
+    if(m<=1 || m>this->m)
         throw std::domain_error("Bad order"); 
     this->m = m; 
 }
@@ -106,7 +106,7 @@ double ChebyshevApproximation::derivative(double x) const {
 }
 
 ChebyshevApproximation ChebyshevApproximation::derivative() const {
-    std::vector<double> cprim(this->n+1);
+    std::vector<double> cprim(this->m+1);
     double mi = 4./(xmax - xmin);
     cprim[m] = 0;
     cprim[m-1] = mi * m * c[m];
@@ -115,14 +115,13 @@ ChebyshevApproximation ChebyshevApproximation::derivative() const {
     for(int k = m-3; k>=0; --k) {
         cprim[k] = cprim[k+2] + mi*(k+1)*c[k+1];
     }
-    ChebyshevApproximation to_return(cprim, xmin, xmax, m, n);   
+    ChebyshevApproximation to_return(cprim, xmin, xmax);   
 
     return to_return;
 }
 
 ChebyshevApproximation ChebyshevApproximation::antiderivative() const {
-    /*
-    std::vector<double> cint(this->n+2); //cint[0] = 0
+    std::vector<double> cint(this->m+2); //cint[0] = 0
     double mi = (xmax-xmin) / 4;
     
     for(int k=1; k<=m-1; ++k) {
@@ -132,24 +131,20 @@ ChebyshevApproximation ChebyshevApproximation::antiderivative() const {
     cint[m] = mi * c[m-1]/m;
     cint[m+1] = mi * (c[m]/(m+1));        //k=m+1 => m=k-1
 
-    ChebyshevApproximation to_return(cint, xmin, xmax, m, n); 
+    ChebyshevApproximation to_return(cint, xmin, xmax); 
     return to_return;
-    */
-
-    std::vector<double> koef(m+2);
-    for(int k=1; k<=m-1; ++k)
-        koef[k] = (xmax-xmin)/(4*k)*(c[k-1]-c[k+1]);
-    koef[0] = 0;
-    koef[m] = (xmax-xmin)/(4*m)*c[m-1];
-    koef[m+1] = (xmax-xmin)/(4*m+4)*c[m];
-
-    return ChebyshevApproximation (koef, xmin, xmax, m, n);
-    
-
-
 }
 
+double ChebyshevApproximation::integrate(double a, double b) const {
+    if(a<xmin || b>xmax)
+        throw std::domain_error("Bad Interval");
+    auto integral = this->antiderivative();
+    return integral(b) - integral(a);
+}
 
-
+double ChebyshevApproximation::integrate() const {
+    auto integral = this->antiderivative();
+    return integral(xmax) - integral(xmin);
+}
 
 #endif

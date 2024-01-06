@@ -7,7 +7,7 @@ double fun(double x) {
 }
 
 int main() {
-
+    
     ChebyshevApproximation approx(fun, -1, 1, 10);
     auto w = std::setw(40);
     auto l = std::left;
@@ -29,10 +29,10 @@ int main() {
     std::cout<<w<<l<<f<<sp<<"Vrijednost primitivne f-je: "<<intvalue<<std::endl;
     std::cout<<w<<l<<f<<sp<<"Aproksimacija primitivne f-je: "<<integral(testx)<<std::endl;
 
-
+    approx.set_m(11);
+    
 
     //chebyshevljeva radi!!!
-
 
     return 0;
 }
